@@ -1,125 +1,80 @@
- # CATERING PROJECT
+# PEOPLE
 
- ```python
-import queue
-import time
-from dataclasses import dataclass
-from datetime import datetime, timedelta
-import threading
+1. Dima - developer (implementor)
+2. Carl - client (ADMIN)
+3. Martin - Melange
+4. Bob - Bueno
+5. John - user1 (USER)
+6. Marry - user2 (USER)
 
-STORAGE = {
-    "users": [],
-    "dishes": [
-        {"id": 1, "name": "pizza", "price": 1099},
-        {
-            "id": 2,
-            "name": "soda",
-            "price": 199,
-        },
-        {
-            "id": 3,
-            "name": "salad",
-            "price": 599,
-        },
-    ],
-    # ...
-}
+# PROJECT MANAGEMENT
 
+1. Waterfall
+2. Scrum - sprint
 
-@dataclass
-class DishRequest:
-    name: str
-    amount: str
+MEETINGS
 
+1. daily
+2. refinement
+3. grooming (BIG BUSINESS PROBLEM -> small technical features)
+4. task
 
-@dataclass
-class OrderRequestBody:
-    id: int
-    dishes: list[DishRequest]
-    delivery_time: datetime
-    created_at: datetime
+# INPUT DATA
 
-    def __str__(self):
-        if self.delivery_time == self.created_at:
-            eta = "IMMIDIATLY"
-        else:
-            eta = f"at {self.delivery_time.strftime("%Y-%m-%d %H:%M")}"
+we already have the frontend application. only the backend API is left...
 
-        return f"[{self.id}] ORDER. TOTAL: {len(self.dishes)}. ORDER AT {eta}"
+# BACKLOG
 
+- User Management (CRUD for `/users`)
 
-class Scheduler:
-    def __init__(self):
-        self.orders: queue.Queue[OrderRequestBody] = queue.Queue()
+  - Entdpoints to implement:
 
-    def add_order(self, order: OrderRequestBody):
-        self.orders.put(order)
-        print(f"ORDER {order} IS SCHEDULED")
+    - `HTTP POST /users` - create user -> `201 User[USER]`
+    - `HTTP PUT /users/ID` - update user -> `200 User[USER,ADMIN]`
+    - `HTTP GET /users` - get user -> `200 User[USER,ADMIN]`
+    - `HTTP DELETE /users/ID` - delete user -> `204 [USER]`
 
-    def process_orders(self):
-        print("SCHEDULER PROCESSING...")
+    - `HTTP POST /users/passowrd/forgot` -> `KEY[UUID]`
+    - `HTTP POST /users/passowrd/change?key=UUID&creds={}` -> 200
 
-        while True:
-            order = self.orders.get()
+  - Roles:
+    - ADMIN
+    - USER
+    - SUPPORT
 
-            time_to_wait = order.delivery_time - datetime.now()
-            if time_to_wait.total_seconds() > 0:
-                self.orders.put(order)
-                continue
-            else:
-                print(f"{order} SENT TO SHIPPING DEPARTMENT")
+- Authentication & Authorization
 
+  - `HTTP POST /token [USER,ADMIN]`
 
-def main():
-    right_now = datetime.now()
-    eta = right_now + timedelta(seconds=5)
+- Dishes Management
 
-    # order_request_body = OrderRequestBody(
-    #     id=1,
-    #     dishes=[
-    #         DishRequest(name="pizza", amount="2"),
-    #         DishRequest(name="soda", amount="1"),
-    #         DishRequest(name="salad", amount="1"),
-    #         DishRequest(name="dessert", amount="1"),
-    #     ],
-    #     created_at=right_now,
-    #     delivery_time=eta,
-    # )
+  - `HTTP POST /dishes` - create a new dish `[ADMIN]`
+  - `HTTP GET /dishes` - list all dishes `[ADMIN,USER]`
+  - `HTTP GET /dishes/ID` - retrieve dish `[ADMIN,USER]`
+  - `HTTP PUT /dishes/ID` - update dish `[ADMIN]`
+  - `HTTP DELETE /dishes/ID` - delete dish `[ADMIN]`
 
-    # order_request_body_2 = OrderRequestBody(
-    #     id=2,
-    #     dishes=[
-    #         DishRequest(name="pizza", amount="2"),
-    #         DishRequest(name="soda", amount="1"),
-    #         DishRequest(name="salad", amount="1"),
-    #         DishRequest(name="dessert", amount="1"),
-    #     ],
-    #     created_at=right_now,
-    #     delivery_time=right_now,
-    # )
+  - Refresh the data from restaurants
 
-    scheduler = Scheduler()
-    thread = threading.Thread(target=scheduler.process_orders, daemon=True)
-    thread.start()
+    - as a `Thread(daemon=True)`
 
-    # user input
-    scheduler.add_order(order_request_body)
-    scheduler.add_order(order_request_body_2)
+  - Display of recommended dishes for events (_v2_)
 
-    # end
-    thread.join()
+- Orders Management
 
+  - `HTTP POST /orders` - create a new order `[USER]`
+    - `{dishes: list[OrderDish]}`
+  - `HTTP GET /orders` - list all orders `[ADMIN,SUP]`
+  - `HTTP GET /orders/ID` - retrieve dish `[ADMIN,USER]`
+  - `HTTP PUT /orders/ID` - update dish `[ADMIN]`
+  - `HTTP DELETE /orders/ID` - delete dish `[ADMIN]`
+  - `HTTP POST /orders/ID/reorder` - reorder failed order `[ADMIN,SUP]`
+    - check if status is `failed`
 
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("Exiting...")
-        raise SystemExit(0)
+- Delivery Management
+- Payment Processing
 
-
- ```
-
-# REQUESTS
-
-1. If order is outdated for 2 days - ignore on processing
+- Communication and Support
+  - `HTTP POST /support/issues/orders/ID` - issue the order question...
+    - `{message: str, photos: list[bytes]}`
+    - `[USER]`
