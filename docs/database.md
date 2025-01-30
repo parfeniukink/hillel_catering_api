@@ -58,3 +58,55 @@ our problem is not about HOW we store the information but actually WHAT may happ
 1. First Normal Form -> products and orders in the same table
 2. Second ... -> have their own ids
 3. Third -> no transitive deps...
+
+# CheatSheet
+
+**Transaction Commands**
+
+| Command                   | Description                                    |
+| ------------------------- | ---------------------------------------------- |
+| `START TRANSACTION;`      | Begins a transaction                           |
+| `COMMIT;`                 | Saves changes permanently                      |
+| `ROLLBACK;`               | Undoes changes since last `START TRANSACTION;` |
+| `SAVEPOINT point_name;`   | Creates a rollback point inside a transaction  |
+| `ROLLBACK TO point_name;` | Rolls back to a specific savepoint             |
+
+**Safe Order Processing**
+
+```sql
+START TRANSACTION;
+
+-- Insert order
+INSERT INTO orders (customer_id, total_price, order_status)
+VALUES (5, 45.99, 'pending');
+
+-- Reduce stock
+UPDATE inventory SET stock_quantity = stock_quantity - 2
+WHERE ingredient_id = 10;
+
+-- Check for negative stock
+IF (SELECT COUNT(*) FROM inventory WHERE stock_quantity < 0) > 0 THEN
+    ROLLBACK; -- Undo everything if stock is insufficient
+ELSE
+    COMMIT; -- Finalize order
+END IF;
+```
+
+**Types of Joins**
+
+| Join Type    | Description                                     | Example                            |
+| ------------ | ----------------------------------------------- | ---------------------------------- |
+| `INNER JOIN` | Returns only **matching** rows                  | Orders with Customers              |
+| `LEFT JOIN`  | Returns **all** from left + matching from right | All Customers, even without Orders |
+| `RIGHT JOIN` | Returns **all** from right + matching from left | All Orders, even without Customers |
+| `FULL JOIN`  | Returns **all** rows, even if there's no match  | Every record from both tables      |
+| `CROSS JOIN` | Returns **every combination** of both tables    | All menu items + All ingredients   |
+
+**Best Practices**
+
+- use transactions only if multiple queries depend on each other
+- test joins with `LIMIT` before using them in complex queries
+- Use `EXPLAIN` to check performance on large joins
+- normalize database design to avoid unnecessary joins
+- denormalize database design to provide better performance
+- ensure indexes exist on foreign keys for faster joins
