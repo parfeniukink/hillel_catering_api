@@ -8,6 +8,7 @@ django = "==5.1.5"
 djangorestframework = "==3.15.2"
 
 [dev-packages]
+django-stubs = "~=5.1"
 
 [requires]
 python_version = "3.12"
