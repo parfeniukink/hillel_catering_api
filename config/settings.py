@@ -29,6 +29,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+from django.contrib import admin
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -38,7 +39,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # custom
-    "core.apps.CoreConfig",
+    # "food.apps.FoodConfig",
+    # "delivery.apps.DeliveryConfig",
+    "food",
+    "delivery",
 ]
 
 MIDDLEWARE = [
