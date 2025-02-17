@@ -41,8 +41,9 @@ we already have the frontend application. only the backend API is left...
 
   - Roles:
     - ADMIN
-    - USER
     - SUPPORT
+    - CLIENT
+    - DRIVER
 
 - Authentication & Authorization
 
