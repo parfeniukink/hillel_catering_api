@@ -46,42 +46,19 @@ we already have the frontend application. only the backend API is left...
     - DRIVER
 
 - Authentication & Authorization
-
   - `HTTP POST /auth/token [USER,ADMIN]`
 
-- Food
-
-  - `HTTP GET /food/restaurants` - list of restaurants with dishes
-  - `HTTP GET /food/dishes` - list of dishes
-  - `HTTP GET /food/dishes/ID` - retrieve dish
-
-  - `HTTP POST /food/orders` - create the order
-  - `HTTP GET /food/orders/ID` - retrieve the order
-
-- Dishes Management
-
-  - `HTTP POST /dishes` - create a new dish `[ADMIN]`
-  - `HTTP GET /dishes` - list all dishes `[ADMIN,USER,SUPPORT]`
-  - `HTTP GET /dishes/ID` - retrieve dish `[ADMIN,USER,SUPPORT]`
-  - `HTTP PUT /dishes/ID` - update dish `[ADMIN]`
-  - `HTTP DELETE /dishes/ID` - delete dish `[ADMIN]`
-
+- Food tier
+  - Endpoints
+    - `HTTP GET /food/restaurants` - list of restaurants with dishes
+    - `HTTP GET /food/dishes` - list of dishes
+    - `HTTP GET /food/dishes/ID` - retrieve dish
+    - `HTTP POST /food/orders` - create the order
+    - `HTTP GET /food/orders/ID` - retrieve the order
+    - `HTTP POST /food/orders/ID/reorder` - reorder failed order `[ADMIN,SUP]`
   - Refresh the data from restaurants
-
     - as a `Thread(daemon=True)`
-
   - Display of recommended dishes for events (_v2_)
-
-- Orders Management (includes delivery management in a background)
-
-  - `HTTP POST /orders` - create a new order `[USER]`
-    - `{dishes: list[OrderDish]}`
-  - `HTTP GET /orders` - list all orders `[ADMIN,SUP]`
-  - `HTTP GET /orders/ID` - retrieve dish `[ADMIN,USER,SUP]`
-  - `HTTP PUT /orders/ID` - update dish `[ADMIN,SUP]`
-  - `HTTP DELETE /orders/ID` - delete dish `[ADMIN,SUP]`
-  - `HTTP POST /orders/ID/reorder` - reorder failed order `[ADMIN,SUP]`
-    - check if status is `failed`
 
 Order Public Contract
 

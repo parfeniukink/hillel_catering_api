@@ -5,7 +5,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import UserRegistratrionSerializer, UserPublicSerializer
 
 
-
 class UserAPIViewSet(viewsets.GenericViewSet):
     authentication_classes = [JWTAuthentication]
     serializer_class = UserRegistratrionSerializer
