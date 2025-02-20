@@ -1,10 +1,6 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.template.response import TemplateResponse
-from django import forms
-
-
-class UploadDishesForm(forms.Form):
-    csv_file = forms.FileField()
+from .forms import UploadDishesForm
 
 
 def import_dishes(request: WSGIRequest, **kwargs):

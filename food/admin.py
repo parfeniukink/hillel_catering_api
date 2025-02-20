@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.http.response import HttpResponseRedirect
-from .models import Dish, Restaurant, DishesOrder, DishOrderItem
+from .models import Dish, Restaurant, Order, DishOrderItem
 
 admin.site.register(Restaurant)
 
@@ -24,7 +24,7 @@ class DishOrderItemInline(admin.TabularInline):
     model = DishOrderItem
 
 
-@admin.register(DishesOrder)
+@admin.register(Order)
 class DishesOrderAdmin(admin.ModelAdmin):
     inlines = (DishOrderItemInline,)
 

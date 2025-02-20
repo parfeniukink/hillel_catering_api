@@ -32,10 +32,10 @@ we already have the frontend application. only the backend API is left...
     - USER STORY (from Jira)
 
       - `HTTP POST /users` - create user -> `201 Use[USER]`
-      - `HTTP PUT /users/ID` - update user -> `200 User[USER,ADMIN]`
       - `HTTP GET /users` - get user -> `200 User[USER,ADMIN]`
-      - `HTTP DELETE /users/ID` - delete user -> `204 [USER]`
 
+      - `HTTP PUT /users/ID` - update user -> `200 User[USER,ADMIN]`
+      - `HTTP DELETE /users/ID` - delete user -> `204 [USER]`
       - `HTTP POST /users/passowrd/forgot` -> `KEY[UUID]`
       - `HTTP POST /users/passowrd/change?key=UUID&creds={}` -> 200
 
@@ -47,7 +47,16 @@ we already have the frontend application. only the backend API is left...
 
 - Authentication & Authorization
 
-  - `HTTP POST /token [USER,ADMIN]`
+  - `HTTP POST /auth/token [USER,ADMIN]`
+
+- Food
+
+  - `HTTP GET /food/restaurants` - list of restaurants with dishes
+  - `HTTP GET /food/dishes` - list of dishes
+  - `HTTP GET /food/dishes/ID` - retrieve dish
+
+  - `HTTP POST /food/orders` - create the order
+  - `HTTP GET /food/orders/ID` - retrieve the order
 
 - Dishes Management
 

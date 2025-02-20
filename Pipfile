@@ -10,6 +10,7 @@ djangorestframework-simplejwt = "~=5.4.0"
 
 [dev-packages]
 django-stubs = "~=5.1"
+ipdb = "*"
 
 [requires]
 python_version = "3.12"
