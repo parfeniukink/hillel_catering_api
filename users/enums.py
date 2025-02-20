@@ -5,13 +5,7 @@ from functools import lru_cache
 class Role(StrEnum):
     ADMIN = auto()
     MANAGER = auto()
-    DRIVER = auto()
     CLIENT = auto()
-
-    @classmethod
-    @lru_cache(maxsize=1)
-    def users(cls) -> list[str]:
-        return [cls.DRIVER, cls.CLIENT]
 
     @classmethod
     @lru_cache(maxsize=1)

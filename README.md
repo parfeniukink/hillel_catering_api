@@ -24,3 +24,5 @@ pipenv lock
 # install dependencies form `Pipfile.lock` file
 pipenv sync
 ```
+
+1. User Registration and Token obtain

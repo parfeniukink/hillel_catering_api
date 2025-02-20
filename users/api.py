@@ -46,17 +46,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             "phone_number",
             "first_name",
             "last_name",
-            "role",
             "password",
         ]
-
-    def validate_role(self, value: str) -> str:
-        if value not in ("client", "driver"):
-            raise ValidationError(
-                f"Available Roles: ['client', 'driver']",
-            )
-
-        return value
 
     def validate(self, attrs: dict) -> dict:
         """Change the password for its hash"""
@@ -136,19 +127,25 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class UsersViewSet(viewsets.GenericViewSet):
     authentication_classes = [JWTAuthentication]
+    # note: remove and show the `/users` page
+    serializer_class = UserRegistrationSerializer
 
     def get_permissions(self):
         if self.action == "list":
             return [permissions.IsAuthenticated()]
         elif self.action == "create":
             return [permissions.AllowAny()]
+        elif self.action == None:
+            # for browser page
+            return [permissions.AllowAny()]
         else:
-            raise NotImplementedError
+            raise NotImplementedError(self.action)
 
     # @action(methods=["POST"], detail=False)
     def create(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        serializer.save()
 
         return Response(
             status=status.HTTP_201_CREATED,
