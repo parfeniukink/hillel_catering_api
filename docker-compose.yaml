@@ -22,7 +22,7 @@ services:
       - "8025:8025"
 
   database:
-    image: postgres:17
+    image: "postgres:17"
     container_name: catering_database
     environment:
       POSTGRES_USER: postgres
@@ -34,7 +34,7 @@ services:
       - pg_data:/var/lib/postgresql/data
 
       # paste ``&app`` after Celery is added
-    api: &api
+  api: &api
     build: .
     image: catering_api
     container_name: catering_api
@@ -45,12 +45,12 @@ services:
     volumes:
       - .:/app/
 
-    worker:
-      <<: *api
+  worker:
+    <<: *api
     container_name: catering_worker
     ports: []
     entrypoint: bash
     command: -c "watchmedo auto-restart --pattern='*.py' --recursive -- celery -A config worker -l DEBUG"
 
-    volumes:
-      pg_data: {}
+volumes:
+  pg_data: {}
