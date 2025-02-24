@@ -2,6 +2,8 @@ from rest_framework import status, permissions, viewsets, routers
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from users.services import Activator
+
 from .serializers import UserRegistratrionSerializer, UserPublicSerializer
 
 
@@ -24,6 +26,24 @@ class UserAPIViewSet(viewsets.GenericViewSet):
         serializer = UserRegistratrionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # SEND THE ACTIVATION LINK TO THE EMAIL
+        # Functional approach
+        # activation_key: uuid.UUID = services.create_activation_key(
+        #     email=serializer.data["email"]
+        # )
+        # services.send_user_activation_email(
+        #     email=serializer.data["email"], activation_key=activation_key
+        # )
+
+        # OOP approach
+        activator_service = Activator(email=getattr(serializer.instance, "email"))
+        activation_key = activator_service.create_activation_key()
+        activator_service.send_user_activation_email(activation_key=activation_key)
+        activator_service.save_activation_information(
+            internal_user_id=getattr(serializer.instance, "id"),
+            activation_key=activation_key,
+        )
 
         return Response(
             UserPublicSerializer(serializer.validated_data).data,
