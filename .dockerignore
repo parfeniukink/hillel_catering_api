@@ -1,0 +1,9 @@
+.gitignore
+.git/
+docs/
+__pycache__/
+seed/
+Dockerfile
+docker-compose.yaml
+*.md 
+*.excalidraw

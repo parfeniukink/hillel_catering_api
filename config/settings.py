@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from datetime import timedelta
+from os import getenv
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -83,8 +84,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": getenv("DATABASE_NAME", "catering"),
+        "USER": getenv("DATABASE_USER", "postgres"),
+        "PASSWORD": getenv("DATABASE_PASSWORD", "postgres"),
+        "HOST": getenv("DATABASE_HOST", "database"),
+        "PORT": getenv("DATABASE_PORT", 5432),
     }
 }
 
@@ -155,3 +160,18 @@ SIMPLE_JWT = {
 
 
 AUTH_USER_MODEL = "users.User"
+
+
+# Celery
+# CELERY_TASK_SERIALIZER = "pickle"
+# ...
+# CELERY_BROKER_URL = getenv("BROKER_URL", default="redis://broker:6379/0")
+CACHE_URL = getenv("CACHE_URL", default="redis://cache:6379/0")
+
+
+# SMTP
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = getenv("EMAIL_HOST", "mailing")
+EMAIL_PORT = getenv("EMAIL_PORT", 1025)
+EMAIL_HOST_USER = getenv("EMAIL_USER", "mailpit")
+EMAIL_HOST_PASSWORD = getenv("EMAIL_PASSWORD", "mailpit")
