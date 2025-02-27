@@ -158,8 +158,6 @@ class UserRegistratrionSerializer(serializers.Serializer):
         self.model.save()
 ```
 
-
-
 # PROJECT INFRASTRUCTURE
 
 1. application (Python, Django (FastAPI))
@@ -167,4 +165,3 @@ class UserRegistratrionSerializer(serializers.Serializer):
 3. cache (Redis, Memcached, Valkey)
 4. worker (Python, RQ, Celery)
 5. queue (broker, RabbitMQ, SQS, Redis)
-
