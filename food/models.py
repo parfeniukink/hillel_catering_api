@@ -38,6 +38,7 @@ class Order(models.Model):
 
     status = models.CharField(max_length=20)
     provider = models.CharField(max_length=20, null=True, blank=True)
+    eta = models.DateField()
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -66,7 +67,7 @@ class DishOrderItem(models.Model):
     quantity = models.SmallIntegerField()
 
     dish = models.ForeignKey("Dish", on_delete=models.CASCADE)
-    order = models.ForeignKey("Order", on_delete=models.CASCADE)
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="items")
 
     def __str__(self) -> str:
         return f"[{self.order.pk}] {self.dish.name}: {self.quantity}"

@@ -8,8 +8,9 @@ class OrderStatus(StrEnum):
     COOKED = auto()
     DRIVER_LOOKUP = auto()
     DRIVER_WAITING = auto()
-    DELIVERED = auto()
-    NOT_DELIVERED = auto()
+    DELIVERED = auto()  # delivered
+    NOT_DELIVERED = auto()  # not_delivered
+    CANCELLED = auto()
 
     @classmethod
     def choices(cls):
