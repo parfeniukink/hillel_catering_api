@@ -4,16 +4,12 @@ from time import sleep
 
 from django.db.models import QuerySet
 
-from food.models import Order
 from food.enums import OrderStatus
+from food.models import Order
+from .constants import EXCLUDE_STATUSES
 
 
 class Processor:
-
-    EXCLUDE_STATUSES = (
-        OrderStatus.DELIVERED,
-        OrderStatus.NOT_DELIVERED,
-    )
 
     def __init__(self) -> None:
         self._thread = Thread(target=self.process, daemon=True)
@@ -37,7 +33,7 @@ class Processor:
     def _process(self):
 
         orders: QuerySet[Order] = Order.objects.exclude(
-            status__in=self.EXCLUDE_STATUSES,
+            status__in=EXCLUDE_STATUSES,
         )
 
         for order in orders:
@@ -65,11 +61,7 @@ class Processor:
 
         if order.eta > self.today:
             pass
-        elif order.eta < self.today:
-            order.status = OrderStatus.CANCELLED
-            order.save()
-            print(f"Cancelled order {order}")
-        else:
+        else:  # only if `==`
             # today scenario
             order.status = OrderStatus.COOKING
             order.save()

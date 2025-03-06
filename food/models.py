@@ -1,5 +1,5 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 
 
 class Restaurant(models.Model):
@@ -47,6 +47,9 @@ class Order(models.Model):
 
     def __str__(self) -> str:
         return f"{self.pk} {self.status} for {self.user.email}"
+
+    def __repr__(self) -> str:
+        return super().__str__()
 
 
 class DishOrderItem(models.Model):

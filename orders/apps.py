@@ -6,8 +6,12 @@ class OrdersConfig(AppConfig):
     name = "orders"
 
     def ready(self) -> None:
-        from .processor import Processor
+        # THREADS IMPLEMENTATION
+        # from .processor import Processor
+        # Processor().start()
+        # return super().ready()
 
-        Processor().start()
+        # CELERY WORKER IMPLEMENTATION
+        from .tasks import orders_validation
 
-        return super().ready()
+        orders_validation.delay()

@@ -1,4 +1,5 @@
-from rest_framework import status, permissions, viewsets, routers
+import random
+from rest_framework import permissions, routers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -6,10 +7,17 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from users.service import Activator
 
 from .serializers import (
-    UserRegistratrionSerializer,
-    UserPublicSerializer,
     UserActivationSerializer,
+    UserPublicSerializer,
+    UserRegistratrionSerializer,
 )
+
+
+# PoC
+# @celery_app.task
+# def background_task(n: int):
+#     print(f"Running in the background, {n=}")
+#     return n
 
 
 class UserAPIViewSet(viewsets.GenericViewSet):

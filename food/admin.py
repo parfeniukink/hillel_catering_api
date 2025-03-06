@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.http.response import HttpResponseRedirect
-from .models import Dish, Restaurant, Order, DishOrderItem
+
+from .models import Dish, DishOrderItem, Order, Restaurant
 
 admin.site.register(Restaurant)
 

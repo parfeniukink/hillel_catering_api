@@ -1,11 +1,12 @@
 from django.core.handlers.wsgi import WSGIRequest
-from rest_framework import status, viewsets, routers
+from rest_framework import routers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from .enums import OrderStatus
 from .models import Dish, DishOrderItem, Order
 from .serializers import DishSerializer, OrderCreateSerializer
-from .enums import OrderStatus
+from .services import OrdersService
 
 
 class FoodAPIViewSet(viewsets.GenericViewSet):
@@ -56,11 +57,14 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
 
         # ORM
         # ======================
-        order = Order.objects.create(
+        order: Order = Order.objects.create(
             status=OrderStatus.NOT_STARTED,
             user=request.user,
             eta=serializer.validated_data["eta"],
         )
+        result = OrdersService().schedule_order(order=order)
+        breakpoint()
+
         print(f"New Food Order is created: {order.pk}.\nETA: {order.eta}")
 
         try:

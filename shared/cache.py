@@ -6,6 +6,7 @@ CACHE PROPERTIES:
 """
 
 import json
+
 import redis
 from django.conf import settings
 
