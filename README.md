@@ -165,3 +165,10 @@ class UserRegistratrionSerializer(serializers.Serializer):
 3. cache (Redis, Memcached, Valkey)
 4. worker (Python, RQ, Celery)
 5. queue (broker, RabbitMQ, SQS, Redis)
+
+# PROJECT SETUP
+
+```sh
+uvicorn test.providers.bueno --port 8001
+uvicorn test.providers.melange --port 8002
+```

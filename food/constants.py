@@ -1,5 +1,4 @@
-from food.enums import OrderStatus
-
+from .enums import OrderStatus
 
 EXCLUDE_STATUSES = (
     OrderStatus.DELIVERED,
