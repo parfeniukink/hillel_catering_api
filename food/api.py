@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from .enums import OrderStatus
 from .models import Dish, DishOrderItem, Order
 from .serializers import DishSerializer, OrderCreateSerializer
-from .services import OrdersService
+from .services import schedule_order
 
 
 class FoodAPIViewSet(viewsets.GenericViewSet):
@@ -34,7 +34,8 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
 
         WORKFLOW
         1. validate the input
-        2. create ``
+        2. create order
+        3. create order items
         """
 
         serializer = OrderCreateSerializer(data=request.data)
@@ -43,29 +44,11 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
         if not isinstance(serializer.validated_data, dict):
             raise ValueError(...)
 
-        # alternatives
-        # -------------
-        # assert isinstance(serializer.validated_data, dict)
-
-        # from typing import cast
-        # response = cast(dict, serializer.validated_data) | {}
-
-        # ACTIVE RECORD
-        # =======================
-        # order = Order(status=OrderStatus.NOT_STARTED, provider=None)
-        # order.save()
-
-        # ORM
-        # ======================
         order: Order = Order.objects.create(
             status=OrderStatus.NOT_STARTED,
             user=request.user,
             eta=serializer.validated_data["eta"],
         )
-        result = OrdersService().schedule_order(order=order)
-        breakpoint()
-
-        print(f"New Food Order is created: {order.pk}.\nETA: {order.eta}")
 
         try:
             dishes_order = serializer.validated_data["food"]
@@ -73,17 +56,18 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
             raise ValueError("Food order is not properly built")
 
         for dish_order in dishes_order:
-            instance = DishOrderItem.objects.create(
+            DishOrderItem.objects.create(
                 dish=dish_order["dish"], quantity=dish_order["quantity"], order=order
             )
-            print(f"New Dish Order Item is created: {instance.pk}")
+
+        schedule_order(order=order)
 
         return Response(
             data={
                 "id": order.pk,
                 "status": order.status,
                 "eta": order.eta,
-                "total": 9999,
+                "total": 9999,  # mocked
             },
             status=status.HTTP_201_CREATED,
         )

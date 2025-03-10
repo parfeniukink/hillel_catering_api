@@ -12,6 +12,17 @@ services:
     depends_on:
       - database
 
+  mock_providers:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: catering_mock_providers
+    ports:
+      - "8001:8001"
+      - "8002:8002"
+    volumes:
+      - ./test/providers:/app/
+
   database:
     image: "postgres:17"
     container_name: catering_database
