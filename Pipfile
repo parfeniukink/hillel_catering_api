@@ -15,6 +15,11 @@ celery = { version = "==5.4.0", extras = ["redis"]}
 django-stubs = "~=5.1"
 ipdb = "*"
 celery-types = "*"
+fastapi = "*"
+pydantic = "*"
+httpx = "*"
+uvicorn = "*"
+requests = "*"
 
 [requires]
 python_version = "3.12"

@@ -1,3 +1,4 @@
+from celery.result import AsyncResult
 from django.core.handlers.wsgi import WSGIRequest
 from rest_framework import routers, status, viewsets
 from rest_framework.decorators import action
@@ -6,7 +7,7 @@ from rest_framework.response import Response
 from .enums import OrderStatus
 from .models import Dish, DishOrderItem, Order
 from .serializers import DishSerializer, OrderCreateSerializer
-from .services import OrdersService
+from .services import schedule_order
 
 
 class FoodAPIViewSet(viewsets.GenericViewSet):
@@ -29,7 +30,7 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
                 1: 3  // id: quantity
                 2: 1  // id: quantity
             },
-            "eta": TIMESTAMP
+            "eta": DATE
         }
 
         WORKFLOW
@@ -43,29 +44,11 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
         if not isinstance(serializer.validated_data, dict):
             raise ValueError(...)
 
-        # alternatives
-        # -------------
-        # assert isinstance(serializer.validated_data, dict)
-
-        # from typing import cast
-        # response = cast(dict, serializer.validated_data) | {}
-
-        # ACTIVE RECORD
-        # =======================
-        # order = Order(status=OrderStatus.NOT_STARTED, provider=None)
-        # order.save()
-
-        # ORM
-        # ======================
         order: Order = Order.objects.create(
             status=OrderStatus.NOT_STARTED,
             user=request.user,
             eta=serializer.validated_data["eta"],
         )
-        result = OrdersService().schedule_order(order=order)
-        breakpoint()
-
-        print(f"New Food Order is created: {order.pk}.\nETA: {order.eta}")
 
         try:
             dishes_order = serializer.validated_data["food"]
@@ -77,6 +60,9 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
                 dish=dish_order["dish"], quantity=dish_order["quantity"], order=order
             )
             print(f"New Dish Order Item is created: {instance.pk}")
+
+        schedule_order(order=order)
+        print(f"New Food Order is created: {order.pk}.\nETA: {order.eta}")
 
         return Response(
             data={
