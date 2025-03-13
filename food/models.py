@@ -1,5 +1,11 @@
+from typing import Literal
+
 from django.conf import settings
 from django.db import models
+
+from .constants import RESTAURANT_TO_INTERNAL_STATUSES
+from .enums import OrderStatus
+from .enums import Restaurant as RestaurantEnum
 
 
 class Restaurant(models.Model):
@@ -31,6 +37,22 @@ class Order(models.Model):
     external restaurant that is available in the system.
 
     dishes in plural.
+
+    ARGS
+    -- Idea:
+    restaurants_meta: dict = {
+        "provider": {
+            "order_id": string,
+            "order_status": string,
+            "dishes": [
+                {
+                    "dish": string,
+                    "quantity": number,
+                }, ...
+            ]
+        }
+
+    }
     """
 
     class Meta:
@@ -39,6 +61,8 @@ class Order(models.Model):
     status = models.CharField(max_length=20)
     provider = models.CharField(max_length=20, null=True, blank=True)
     eta = models.DateField()
+
+    # restaurants_meta = models.JSONField()
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -50,6 +74,17 @@ class Order(models.Model):
 
     def __repr__(self) -> str:
         return super().__str__()
+
+    @classmethod
+    def update_from_provider_status(
+        cls, id_: int, status: str | Literal["finished"]
+    ) -> None:
+        if status == "finished":
+            cls.objects.filter(id=id_).update(status=OrderStatus.DRIVER_LOOKUP)
+        else:
+            cls.objects.filter(id=id_).update(
+                status=RESTAURANT_TO_INTERNAL_STATUSES[RestaurantEnum.MELANGE][status]
+            )
 
 
 class DishOrderItem(models.Model):

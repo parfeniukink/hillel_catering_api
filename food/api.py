@@ -1,5 +1,6 @@
 from celery.result import AsyncResult
 from django.core.handlers.wsgi import WSGIRequest
+from django.db import transaction
 from rest_framework import routers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -20,7 +21,8 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
         return Response(data=serializer.data)
 
     # HTTP POST /food/orders
-    @action(methods=["post"], detail=False)
+    # @transaction.non_atomic_requests
+    @action(methods=["post", "get"], detail=False)
     def orders(self, request: WSGIRequest):
         """create new order for food.
 

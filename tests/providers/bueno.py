@@ -1,9 +1,10 @@
-import random
 import asyncio
+import random
 import uuid
+
+import httpx
 from fastapi import BackgroundTasks, FastAPI
 from pydantic import BaseModel
-import httpx
 
 STORAGE: dict[str, dict] = {}
 ORDER_STATUSES = ("not started", "cooking", "cooked", "finished")
