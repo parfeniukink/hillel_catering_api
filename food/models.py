@@ -76,15 +76,25 @@ class Order(models.Model):
         return super().__str__()
 
     @classmethod
-    def update_from_provider_status(
-        cls, id_: int, status: str | Literal["finished"]
-    ) -> None:
-        if status == "finished":
-            cls.objects.filter(id=id_).update(status=OrderStatus.DRIVER_LOOKUP)
+    def update_from_provider_status(cls, id_: int, status: str, delivery=False) -> None:
+        if delivery is False:
+            if status == "finished":
+                cls.objects.filter(id=id_).update(status=OrderStatus.DRIVER_LOOKUP)
+            else:
+                cls.objects.filter(id=id_).update(
+                    status=RESTAURANT_TO_INTERNAL_STATUSES[RestaurantEnum.MELANGE][
+                        status
+                    ]
+                )
         else:
-            cls.objects.filter(id=id_).update(
-                status=RESTAURANT_TO_INTERNAL_STATUSES[RestaurantEnum.MELANGE][status]
-            )
+            if status == "delivered":
+                cls.objects.filter(id=id_).update(status=OrderStatus.DELIVERED)
+            elif status == "delivery":
+                cls.objects.filter(id=id_).update(status=OrderStatus.DELIVERY)
+            elif status == "delivered":
+                cls.objects.filter(id=id_).update(status=OrderStatus.DELIVERED)
+            else:
+                raise ValueError(f"Status {status} is not supported")
 
 
 class DishOrderItem(models.Model):

@@ -12,7 +12,7 @@ class OrderStatus(StrEnum):
     COOKING = auto()
     COOKED = auto()
     DRIVER_LOOKUP = auto()
-    DRIVER_WAITING = auto()
+    DELIVERY = auto()
     DELIVERED = auto()  # delivered
     NOT_DELIVERED = auto()  # not_delivered
     CANCELLED = auto()

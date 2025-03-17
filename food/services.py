@@ -57,16 +57,17 @@ MELANGE HTTP GET /api/orders/<ID>
 
 import uuid
 from collections import defaultdict
+from collections.abc import Iterable
 from datetime import date, datetime, time
 from time import sleep
 
 from config import celery_app
 from shared.cache import CacheService
 
-from .constants import RESTAURANT_TO_INTERNAL_STATUSES
 from .enums import OrderStatus, Restaurant
 from .models import DishOrderItem, Order
-from .providers import bueno, melange
+from .models import Restaurant as RestaurantModel
+from .providers import bueno, melange, uklon
 
 
 class OrderInCache:
@@ -89,6 +90,8 @@ class OrderInCache:
         # self.orders: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
         self.internal_order_id: int = internal_order_id
         self.orders: dict = defaultdict(dict)
+
+        # possibly could include the address?
 
     def append(self, restaurant: str, item: DishOrderItem):
         if not self.orders[restaurant]:
@@ -116,7 +119,10 @@ def validate_external_orders_ready(order: OrderInCache) -> bool:
 
     for rest, _order in order.orders.items():
         if rest == Restaurant.MELANGE:
-            if _order["status"] != melange.OrderStatus.COOKED:
+            if _order["status"] not in (
+                melange.OrderStatus.COOKED,
+                melange.OrderStatus.FINISHED,
+            ):
                 flag = False
                 break
         elif rest == Restaurant.BUENO:
@@ -188,7 +194,6 @@ def melange_order_processing(cached_order: OrderInCache):
                         id_=cached_order.internal_order_id, status=response.status
                     )
 
-                print(f"Current status is {current_status}. Waiting 1 second")
                 sleep(1)
         elif current_status == "cooking":
             external_order_id = cached_order.orders[Restaurant.MELANGE]["external_id"]
@@ -210,16 +215,72 @@ def melange_order_processing(cached_order: OrderInCache):
 
 
 @celery_app.task
-def bueno_order_processing(order: OrderInCache):
-    print("BUENO ORDER PROCESSING")
-    print("=" * 30)
+def bueno_order_processing(cached_order: OrderInCache):
 
-    print(f"====>>>>  {id(order.orders)}")
-    order.orders[Restaurant.BUENO]["status"] = bueno.OrderStatus.COOKED
-    validate_external_orders_ready(order)
+    provider = bueno.Provider()
 
-    print("=" * 30)
+    response: bueno.OrderResponse = provider.create_order(
+        bueno.OrderRequestBody(
+            order=[
+                bueno.OrderItem(**item)
+                for item in cached_order.orders[Restaurant.BUENO]["dishes"]
+            ]
+        )
+    )
+    # update cache representation
+    cached_order.orders[Restaurant.BUENO]["external_id"] = response.id
+
     print("BUENO ORDER PROCESSED")
+
+
+@celery_app.task
+def delivery_order(order: OrderInCache, restaurants: Iterable[RestaurantModel]):
+    """Using random provider - start processing delivery orders."""
+
+    print(f"🚚 DELIVERY PROCESSING STARTED")
+
+    while True:
+        if validate_external_orders_ready(order):
+            break
+        else:
+            sleep(1)
+            print(f"WAITING FOR ORDERS TO BE DELIVERED")
+
+    print(f"🚚 DELIVERED all the orders...")
+
+
+def _delivery_order_task(order: OrderInCache, restaurants: Iterable[RestaurantModel]):
+    """Using random provider - start processing delivery orders."""
+
+    provider = uklon.Provider()
+    addresses: list[str] = []
+    comments: list[str] = []
+
+    for rest in restaurants:
+        addresses.append(rest.address)
+        external_id: str = order.orders[rest.name.lower()]["external_id"]
+        comments.append(f"ORDER: {external_id}")
+
+    _response: uklon.OrderResponse = provider.create_order(
+        uklon.OrderRequestBody(addresses=addresses, comments=comments)
+    )
+
+    current_status: uklon.OrderStatus = uklon.OrderStatus.NOT_STARTED
+
+    while current_status != uklon.OrderStatus.DELIVERED:
+        response: uklon.OrderResponse = provider.get_order(_response.id)
+
+        if current_status == response.status:
+            sleep(1)
+            continue
+
+        # SOLID: ...
+        current_status = response.status  # DELIVERY, DELIVERED
+
+        # update storage
+        Order.update_from_provider_status(
+            id_=order.internal_order_id, status=current_status, delivery=True
+        )
 
 
 @celery_app.task
@@ -239,11 +300,14 @@ def _schedule_order(order: Order):
     """
 
     order_in_cache = OrderInCache(internal_order_id=order.pk)
+    delivery_restaurants: set[RestaurantModel] = set()
 
     for item in order.items.all():
         if (restaurant := item.dish.restaurant.name.lower()) == Restaurant.MELANGE:
+            delivery_restaurants.add(item.dish.restaurant)
             order_in_cache.append(restaurant, item)
         elif item.dish.restaurant.name.lower() == Restaurant.BUENO:
+            delivery_restaurants.add(item.dish.restaurant)
             order_in_cache.append(restaurant, item)
         else:
             raise ValueError(
@@ -259,6 +323,7 @@ def _schedule_order(order: Order):
 
     melange_order_processing.delay(order_in_cache)
     bueno_order_processing.delay(order_in_cache)
+    delivery_order.delay(order_in_cache, delivery_restaurants)
 
 
 def schedule_order(order: Order):
@@ -279,4 +344,3 @@ def schedule_order(order: Order):
         eta = datetime.combine(order.eta, time(hour=3))
         print(f"The order will be started processing {eta}")
         return _schedule_order.apply_async(args=(order,), eta=eta)
-        # return _schedule_order(order)

@@ -1,14 +1,26 @@
+import json
+
 from celery.result import AsyncResult
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import transaction
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import routers, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
 from .enums import OrderStatus
 from .models import Dish, DishOrderItem, Order
 from .serializers import DishSerializer, OrderCreateSerializer
 from .services import schedule_order
+
+
+@csrf_exempt
+def bueno_webhook(request):
+    data: dict = json.loads(json.dumps(request.POST))
+    Order.update_from_provider_status(id_=order.internal_order_id, status="finished")
+
+    return JsonResponse({"message": "ok"})
 
 
 class FoodAPIViewSet(viewsets.GenericViewSet):
