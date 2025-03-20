@@ -1,10 +1,11 @@
 services:
-  api:
+  api: &api
     build: .
     # for dubugging in Docker Container
-    # stdin_open: true
-    # tty: true
+    stdin_open: true
+    tty: true
     container_name: catering_api
+    env_file: .env
     ports:
       - "8000:8000"
     volumes:
@@ -12,13 +13,18 @@ services:
     depends_on:
       - database
 
+  worker:
+    <<: *api
+    container_name: catering_worker
+    ports: []
+    entrypoint: bash
+    command: -c "watchmedo auto-restart --pattern='*.py' -- celery -A config worker -l DEBUG"
+    env_file: .env
+
   database:
     image: "postgres:17"
     container_name: catering_database
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: catering
+    env_file: .env
     ports:
       - "5432:5432"
     volumes:
@@ -46,6 +52,33 @@ services:
       MP_MAX_MESSAGES: 100
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+  mock_melange:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+      target: melange
+    container_name: catering_mock_melange
+    ports:
+      - "8001:8000"
+
+  mock_bueno:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+      target: bueno
+    container_name: catering_mock_bueno
+    ports:
+      - "8002:8000"
+
+  mock_uklon:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+      target: uklon
+    container_name: catering_mock_uklon
+    ports:
+      - "8003:8000"
 
 volumes:
   pg_data: {}

@@ -1,6 +1,11 @@
 from enum import StrEnum, auto
 
 
+class Provider(StrEnum):
+    UKLON = auto()
+    UBER = auto()
+
+
 class Restaurant(StrEnum):
     BUENO = auto()
     MELANGE = auto()

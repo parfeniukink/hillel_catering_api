@@ -89,7 +89,7 @@ class OrderInCache:
     def __init__(self, internal_order_id: int) -> None:
         # self.orders: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
         self.internal_order_id: int = internal_order_id
-        self.orders: dict = defaultdict(dict)
+        self.orders: dict = defaultdict(lambda: defaultdict(dict))
 
         # possibly could include the address?
 
@@ -114,7 +114,7 @@ class OrderInCache:
             )
 
 
-def validate_external_orders_ready(order: OrderInCache) -> bool:
+def validate_all_external_orders_cooked(order: OrderInCache) -> bool:
     flag = True
 
     for rest, _order in order.orders.items():
@@ -130,33 +130,19 @@ def validate_external_orders_ready(order: OrderInCache) -> bool:
                 flag = False
                 break
 
-    if flag is True:
-        Order.update_from_provider_status(
-            id_=order.internal_order_id, status="finished"
-        )
+    # note: this is not a part of a validation function!
+    # todo: remove, since moved to concrete provider implementation
+    # todo: implement in melange_order_processing and bueno_order_processing
+    # if flag is True:
+    #     Order.update_from_restaurant_status(
+    #         id_=order.internal_order_id, status="finished"
+    #     )
 
     return flag
 
 
-@celery_app.task
+# @celery_app.task
 def melange_order_processing(cached_order: OrderInCache):
-    """
-    0: not started
-    3: cooking
-    8: cooked
-    10: finished
-
-    1: not started -> db.not started
-    2: not started -> db.not started
-    4: cooking -> db.cooking
-    7: cooking -> db.cooking
-
-    9: cooked -> db.cooking
-    --
-    12: cooked -> db.cooking
-
-    """
-
     provider = melange.Provider()
 
     while (
@@ -184,14 +170,17 @@ def melange_order_processing(cached_order: OrderInCache):
                     "external_id"
                 ]
                 response = provider.get_order(order_id=external_order_id)
+                print(f"CHECKING MELANGE ORDER: {external_order_id}")
 
                 if current_status != response.status:  # status changed
                     cached_order.orders[Restaurant.MELANGE][
                         "status"
                     ] = response.status  # wait for cooking
 
-                    Order.update_from_provider_status(
-                        id_=cached_order.internal_order_id, status=response.status
+                    Order.update_from_restaurant_status(
+                        id_=cached_order.internal_order_id,
+                        restaurant=Restaurant.MELANGE,
+                        status=response.status,
                     )
 
                 sleep(1)
@@ -201,22 +190,26 @@ def melange_order_processing(cached_order: OrderInCache):
 
             if current_status != response.status:  # if status changed
                 cached_order.orders[Restaurant.MELANGE]["status"] = response.status
-                Order.update_from_provider_status(
-                    id_=cached_order.internal_order_id, status=response.status
+                Order.update_from_restaurant_status(
+                    id_=cached_order.internal_order_id,
+                    restaurant=Restaurant.MELANGE,
+                    status=response.status,
                 )
 
             print(f"Current status is {current_status}. Waiting 3 second")
             sleep(3)
         elif current_status == "cooked":
-            # optional, since will be removed
-            # order.orders[Restaurant.MELANGE]["status"] = "cooked"
-            validate_external_orders_ready(cached_order)
+            if validate_all_external_orders_cooked(cached_order):
+                # note: instead of doing this through the provider mapping
+                Order.objects.update(
+                    id_=cached_order.internal_order_id, status=OrderStatus.COOKED
+                )
+
             break
 
 
 @celery_app.task
 def bueno_order_processing(cached_order: OrderInCache):
-
     provider = bueno.Provider()
 
     response: bueno.OrderResponse = provider.create_order(
@@ -233,18 +226,23 @@ def bueno_order_processing(cached_order: OrderInCache):
     print("BUENO ORDER PROCESSED")
 
 
-@celery_app.task
+# @celery_app.task
 def delivery_order(order: OrderInCache, restaurants: Iterable[RestaurantModel]):
     """Using random provider - start processing delivery orders."""
 
     print(f"🚚 DELIVERY PROCESSING STARTED")
+    from pprint import pprint
 
+    # checking orders in background
+    # note: always reaches ``break`` when we comment Celery
     while True:
-        if validate_external_orders_ready(order):
+        if validate_all_external_orders_cooked(order):
             break
         else:
-            sleep(1)
-            print(f"WAITING FOR ORDERS TO BE DELIVERED")
+            sleep(3)
+            print(f"WAITING FOR ORDERS TO BE COOKED")
+
+    # todo: start from here
 
     print(f"🚚 DELIVERED all the orders...")
 
@@ -278,12 +276,12 @@ def _delivery_order_task(order: OrderInCache, restaurants: Iterable[RestaurantMo
         current_status = response.status  # DELIVERY, DELIVERED
 
         # update storage
-        Order.update_from_provider_status(
+        Order.update_from_restaurant_status(
             id_=order.internal_order_id, status=current_status, delivery=True
         )
 
 
-@celery_app.task
+# @celery_app.task
 def _schedule_order(order: Order):
     """Start processing restaurants orders.
 
@@ -321,9 +319,10 @@ def _schedule_order(order: Order):
         namespace="restaurants_order", key=order_key, instance=order_in_cache.orders
     )
 
-    melange_order_processing.delay(order_in_cache)
-    bueno_order_processing.delay(order_in_cache)
-    delivery_order.delay(order_in_cache, delivery_restaurants)
+    melange_order_processing(order_in_cache)
+    # melange_order_processing.delay(order_in_cache)
+    # bueno_order_processing.delay(order_in_cache)  # won't change the value due to the webhook
+    delivery_order(order_in_cache, delivery_restaurants)
 
 
 def schedule_order(order: Order):
@@ -338,9 +337,10 @@ def schedule_order(order: Order):
     # 2025-03-06  -> 2025-03-06-00:00:00 UTC
     if order.eta == date.today():
         print(f"The order will be started processing now")
-        return _schedule_order.apply_async(args=(order,))
+        # return _schedule_order.apply_async(args=(order,))
+        return _schedule_order(order)
     else:
         # ETA: 3:00AM will be sent to restaurant APIs
         eta = datetime.combine(order.eta, time(hour=3))
         print(f"The order will be started processing {eta}")
-        return _schedule_order.apply_async(args=(order,), eta=eta)
+        # return _schedule_order.apply_async(args=(order,), eta=eta)

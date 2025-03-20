@@ -18,7 +18,7 @@ from .services import schedule_order
 @csrf_exempt
 def bueno_webhook(request):
     data: dict = json.loads(json.dumps(request.POST))
-    Order.update_from_provider_status(id_=order.internal_order_id, status="finished")
+    print("getting the bueno order from the cache and update the database instance")
 
     return JsonResponse({"message": "ok"})
 
@@ -90,8 +90,4 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
 
 
 router = routers.DefaultRouter()
-router.register(
-    prefix="food",
-    viewset=FoodAPIViewSet,
-    basename="food",
-)
+router.register(prefix="food", viewset=FoodAPIViewSet, basename="food")
