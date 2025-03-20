@@ -34,14 +34,12 @@ class OrderResponse:
 class Provider:
     @classmethod
     def create_order(cls, order: OrderRequestBody):
-        breakpoint()  # TODO: remove
-
         response: httpx.Response = httpx.post(
             settings.MELANGE_BASE_URL, json=asdict(order)
         )
         response.raise_for_status()
 
-        breakpoint()  # TODO: remove
+        print(f"👨‍🍳 MELANGE ORDER IS CREATED: {response.json()['status']}")
         return OrderResponse(**response.json())
 
     @classmethod

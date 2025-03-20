@@ -1,13 +1,13 @@
 """
 {
     "melange": {
-        "not started": "not_started",
+        "not started": "not started",
         "cooking": "cooking",
         "cooked": "cooked",
         "finished": "DRIVER_LOOKUP",
     },
     "bueno": {
-        "not started": "not_started",
+        "not started": "not started",
         "cooking": "cooking",
         "cooked": "cooked",
         "finished": "DRIVER_LOOKUP",
