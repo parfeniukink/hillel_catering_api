@@ -11,7 +11,6 @@ def import_dishes(request: WSGIRequest, **kwargs):
 
         return TemplateResponse(request, "admin/import_dishes.html", context)
     elif request.method == "POST":
-        breakpoint()
         return
     else:
         raise ValueError(f"Method {request.method} is not allowed")

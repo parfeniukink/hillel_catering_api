@@ -11,9 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from datetime import timedelta
+from os import getenv
 from pathlib import Path
-
-from django.core.mail.backends.smtp import EmailBackend
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,11 +22,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-c3v3c$$su#@4k@rc494q!)jy#h!jps@-#2ji)(-=v9l^h9g%ft"
+SECRET_KEY = getenv(
+    "SECRET_KEY",
+    "django-insecure-c3v3c$$su#@4k@rc494q!)jy#h!jps@-#2ji)(-=v9l^h9g%ft",
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# deprecated
+# from distutils.util import strtobool
+DEBUG: bool = (
+    True if getenv("DEBUG", "false").lower() in ("true", "1", "on", "yes") else False
+)
 
+# homework: make parser for list of strings
 ALLOWED_HOSTS = ["*"]
 
 
@@ -83,33 +89,20 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "catering",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "NAME": getenv("DATABASE_NAME", "catering"),
+        "USER": getenv("DATABASE_USER", "postgres"),
+        "PASSWORD": getenv("DATABASE_PASSWORD", "postgres"),
+        "HOST": getenv("DATABASE_HOST", "database"),
+        "PORT": getenv("DATABASE_PORT", 5432),
         # "ATOMIC_REQUESTS": False,
     }
 }
 
 
-# Cache
-CACHE_CONNECTION_STRING = "redis://localhost:6379/0"
-
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -130,11 +123,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -162,6 +152,8 @@ REST_FRAMEWORK = {
 # server -> access token + refresh token
 # client -> token -> request
 # server -> validated token -> user by identifier -> process request -> response
+
+# homework: translate string to timedelta
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -174,18 +166,27 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = "users.User"
 
+# Cache
+CACHE_CONNECTION_STRING: str = getenv("CACHE_URL", "redis://cache:6379/0")
+
 
 # MAILING SECTION
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "localhost"
-EMAIL_PORT = 1025
-EMAIL_HOST_USER = "mailpit"
-EMAIL_HOST_PASSWORD = "mailpit"
+EMAIL_HOST = getenv("EMAIL_HOST", "mailing")
+EMAIL_PORT = getenv("EMAIL_PORT", 1025)
+EMAIL_HOST_USER = getenv("EMAIL_USER", "mailpit")
+EMAIL_HOST_PASSWORD = getenv("EMAIL_PASSWORD", "mailpit")
 
 
 # CELERY SECTION
 # settings ref: https://docs.celeryq.dev/en/stable/userguide/configuration.html
-CELERY_BROKER_URL = "redis://localhost:6380/0"
+CELERY_BROKER_URL = getenv("BROKER_URL", "redis://broker:6379")
 CELERY_ACCEPT_CONTENT = ["pickle", "application/json", "application/x-python-serialize"]
 CELERY_TASK_SERIALIZER = "pickle"
 CELERY_EVENT_SERIALIZER = "pickle"
+
+
+# PROVIDERS
+MELANGE_BASE_URL = getenv("MELANGE_BASE_URL", "http://mock_melange:8000")
+BUENO_BASE_URL = getenv("BUENO_BASE_URL", "http://mock_bueno:8000")
+UKLON_BASE_URL = getenv("UKLON_BASE_URL", "http://mock_uklon:8000")

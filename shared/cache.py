@@ -6,6 +6,7 @@ CACHE PROPERTIES:
 """
 
 import json
+from typing import Any
 
 import redis
 from django.conf import settings
@@ -21,10 +22,12 @@ class CacheService:
     def _build_key(namespace: str, key: str):
         return f"{namespace}:{key}"
 
-    def set(self, namespace: str, key: str, instance: dict, ttl: int | None = 259200):
+    def set(self, namespace: str, key: Any, instance: dict, ttl: int | None = 259200):
         payload: str = json.dumps(instance)
-        self.connection.set(name=self._build_key(namespace, key), value=payload, ex=ttl)
+        self.connection.set(
+            name=self._build_key(namespace, str(key)), value=payload, ex=ttl
+        )
 
-    def get(self, namespace: str, key: str) -> dict:
-        result: str = self.connection.get(self._build_key(namespace, key))  # type: ignore
+    def get(self, namespace: str, key: Any) -> dict:
+        result: str = self.connection.get(self._build_key(namespace, str(key)))  # type: ignore
         return json.loads(result)

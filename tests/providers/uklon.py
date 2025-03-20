@@ -25,8 +25,15 @@ async def delivery(order: str):
 
 # business model of the application
 async def update_order_status(order_id: str):
+    start_location = (random.random(), random.random())
+
     for status in ORDER_STATUSES[1:]:
-        await asyncio.sleep(random.randint(5, 10))
+        for _ in range(5):
+            if STORAGE[order_id]["status"] == "not started":
+                return start_location
+
+            STORAGE[order_id]["location"] = (random.random(), random.random())
+            await asyncio.sleep(random.randint(1, 3))
 
         if status == "delivery":
             await delivery(order_id)
@@ -44,6 +51,8 @@ async def make_order(order: OrderRequestBody, background_tasks: BackgroundTasks)
         "status": "not started",
         "addresses": order.addresses,
         "comments": order.comments,
+        # fix: typo in location
+        "location": (random.random(), random.random()),
     }
     background_tasks.add_task(update_order_status, order_id)
 

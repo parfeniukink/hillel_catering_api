@@ -9,6 +9,8 @@ from rest_framework import routers, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
+from shared.cache import CacheService
+
 from .enums import OrderStatus
 from .models import Dish, DishOrderItem, Order
 from .serializers import DishSerializer, OrderCreateSerializer
@@ -18,14 +20,14 @@ from .services import schedule_order
 @csrf_exempt
 def bueno_webhook(request):
     data: dict = json.loads(json.dumps(request.POST))
-    Order.update_from_provider_status(id_=order.internal_order_id, status="finished")
+    print("getting the bueno order from the cache and update the database instance")
 
     return JsonResponse({"message": "ok"})
 
 
 class FoodAPIViewSet(viewsets.GenericViewSet):
     # HTTP GET /food/dishes
-    @action(methods=["get"], detail=False)
+    @action(methods=["get"], detail=False, url_path="dishes")
     def dishes(self, request):
         dishes = Dish.objects.all()
         serializer = DishSerializer(dishes, many=True)
@@ -33,8 +35,7 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
         return Response(data=serializer.data)
 
     # HTTP POST /food/orders
-    # @transaction.non_atomic_requests
-    @action(methods=["post", "get"], detail=False)
+    @action(methods=["post"], detail=False, url_path="orders", url_name="create_order")
     def orders(self, request: WSGIRequest):
         """create new order for food.
 
@@ -88,10 +89,26 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    # HTTP GET /food/orders/ID
+    # note: mention that ``detail=True`` will generate <int:pk> for `/food/<...>/orders`
+    #       instead of `/food/orders/<...>`
+    @action(methods=["get"], detail=False, url_path=r"orders/(?P<id>\d+)")
+    def order_retrieve(self, request: WSGIRequest, id=None):
+        order: Order = Order.objects.get(id=id)
+        order_in_cache = CacheService().get("orders", order.pk)
+
+        # todo: create another serializer for OrderResponse
+        return Response(
+            data={
+                "id": order.pk,
+                "status": order.status,
+                "eta": order.eta,
+                "total": 9999,
+                "location": order_in_cache["location"],
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 router = routers.DefaultRouter()
-router.register(
-    prefix="food",
-    viewset=FoodAPIViewSet,
-    basename="food",
-)
+router.register(prefix="food", viewset=FoodAPIViewSet, basename="food")
