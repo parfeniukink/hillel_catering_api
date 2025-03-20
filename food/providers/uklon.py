@@ -1,5 +1,5 @@
 import enum
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 
 import httpx
 
@@ -21,8 +21,9 @@ class OrderRequestBody:
 class OrderResponse:
     id: str
     status: OrderStatus
-    addresses: list[str] = field(default_factory=list)
-    comments: list[str] = field(default_factory=list)
+    location: tuple[float, float]
+    addresses: list[str]
+    comments: list[str]
 
 
 class Provider:

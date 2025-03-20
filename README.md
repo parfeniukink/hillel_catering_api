@@ -165,3 +165,12 @@ class UserRegistratrionSerializer(serializers.Serializer):
 3. cache (Redis, Memcached, Valkey)
 4. worker (Python, RQ, Celery)
 5. queue (broker, RabbitMQ, SQS, Redis)
+
+
+
+# PROJECT SETUP
+```shell
+cp .env.default .env
+# configure environment
+# run application
+```

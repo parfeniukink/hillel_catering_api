@@ -17,16 +17,23 @@ class OrderRequestBody(BaseModel):
     comments: list[str] = Field(min_length=1)
 
 
-async def delivery(order: str):
-    for address in STORAGE[order]["addresses"]:
-        await asyncio.sleep(2)
+async def delivery(order_id: str):
+    for _ in range(5):
+        STORAGE[order_id]["location"] = (random.random(), random.random())
+        await asyncio.sleep(1)
+
+    for address in STORAGE[order_id]["addresses"]:
+        await asyncio.sleep(1)
         print(f"🏁 DELIVERED TO {address}")
 
 
 # business model of the application
 async def update_order_status(order_id: str):
+    start_location = (random.random(), random.random())
+
     for status in ORDER_STATUSES[1:]:
-        await asyncio.sleep(random.randint(5, 10))
+        STORAGE[order_id]["location"] = (random.random(), random.random())
+        await asyncio.sleep(random.randint(1, 2))
 
         if status == "delivery":
             await delivery(order_id)
@@ -44,6 +51,7 @@ async def make_order(order: OrderRequestBody, background_tasks: BackgroundTasks)
         "status": "not started",
         "addresses": order.addresses,
         "comments": order.comments,
+        "location": (random.random(), random.random()),
     }
     background_tasks.add_task(update_order_status, order_id)
 

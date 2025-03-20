@@ -9,6 +9,8 @@ from rest_framework import routers, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
+from shared.cache import CacheService
+
 from .enums import OrderStatus
 from .models import Dish, DishOrderItem, Order
 from .serializers import DishSerializer, OrderCreateSerializer
@@ -18,7 +20,15 @@ from .services import schedule_order
 @csrf_exempt
 def bueno_webhook(request):
     data: dict = json.loads(json.dumps(request.POST))
-    Order.update_from_provider_status(id_=order.internal_order_id, status="finished")
+
+    cache = CacheService()
+    _order: dict = cache.get("bueno_orders", data["id"])
+
+    order: Order = Order.objects.get(id=_order["internal_order_id"])
+
+    # order.status = _order[status]  # from mapping
+
+    # Order.update_from_provider_status(id_=order.internal_order_id, status="finished")
 
     return JsonResponse({"message": "ok"})
 
@@ -33,8 +43,7 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
         return Response(data=serializer.data)
 
     # HTTP POST /food/orders
-    # @transaction.non_atomic_requests
-    @action(methods=["post", "get"], detail=False)
+    @action(methods=["post"], detail=False)
     def orders(self, request: WSGIRequest):
         """create new order for food.
 
@@ -87,6 +96,16 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
             },
             status=status.HTTP_201_CREATED,
         )
+
+    # HTTP POST /food/orders/<ID>
+    @action(methods=["get"], detail=False, url_path=r"orders/(?P<id>\d+)")
+    def order_retrieve(self, request: WSGIRequest, id: int):
+        order: Order = Order.objects.get(id=id)
+        cache = CacheService()
+
+        order_in_cache = cache.get("orders", order.pk)
+
+        return Response(data=order_in_cache)
 
 
 router = routers.DefaultRouter()
