@@ -15,8 +15,8 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 
-from shared.cache import CacheService
 from config import celery_app
+from shared.cache import CacheService
 
 User = get_user_model()
 CACHE: dict[uuid.UUID, dict] = {}

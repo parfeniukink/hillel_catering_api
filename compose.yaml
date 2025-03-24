@@ -12,6 +12,10 @@ services:
       - .:/app/
     depends_on:
       - worker
+      - database
+      - cache
+      - broker
+      - mailing
 
   worker:
     <<: *api

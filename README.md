@@ -166,11 +166,27 @@ class UserRegistratrionSerializer(serializers.Serializer):
 4. worker (Python, RQ, Celery)
 5. queue (broker, RabbitMQ, SQS, Redis)
 
-
-
 # PROJECT SETUP
+
 ```shell
 cp .env.default .env
 # configure environment
 # run application
 ```
+
+# DEPLOYEMENT
+
+- Set CI/CD
+  - code quality tools
+  - tests
+- Select Cloud Provider
+  - Digital Ocean
+  - Rent instance (machine)
+  - Clone Project
+  - Infra:
+    - Machine with application
+    - Machine with worker (or same?)
+    - Database
+    - ...
+  - Docker Infra
+    - Machine with Docker

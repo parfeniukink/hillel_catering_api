@@ -1,4 +1,5 @@
 import random
+
 from rest_framework import permissions, routers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,7 +12,6 @@ from .serializers import (
     UserPublicSerializer,
     UserRegistratrionSerializer,
 )
-
 
 # PoC
 # @celery_app.task
