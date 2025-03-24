@@ -13,12 +13,15 @@ celery = { version = "==5.4.0", extras = ["redis"]}
 httpx = "*"
 
 [dev-packages]
-django-stubs = "~=5.1"
+django-types = "*"
 ipdb = "*"
 celery-types = "*"
 fastapi = "*"
 pydantic = "*"
 uvicorn = "*"
+pytest = "*"
+pytest-django = "*"
+pytest-mock = "*"
 
 [requires]
 python_version = "3.12"

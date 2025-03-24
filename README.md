@@ -165,3 +165,16 @@ class UserRegistratrionSerializer(serializers.Serializer):
 3. cache (Redis, Memcached, Valkey)
 4. worker (Python, RQ, Celery)
 5. queue (broker, RabbitMQ, SQS, Redis)
+
+# PLAN
+
+- openapi, swagger. install `drf_yasg`
+- deployment
+  - CI/CD
+    - no deployment "on-tag" action
+  - testing
+    - insatll `pytest`, `pytest-django`
+    - write some tests
+  - GitHub Actions
+- rent a server (Digital Ocean)
+  - deploy

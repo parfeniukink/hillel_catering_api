@@ -9,3 +9,11 @@ worker:
 .PHONY: infra
 infra:
 	docker compose up -d mock_bueno mock_melange mock_uklon database cache broker
+
+.PHONY: test
+test:
+	python -m pytest tests
+
+.PHONY: prod
+prod:
+	python -m gunicorn

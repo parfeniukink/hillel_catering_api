@@ -37,7 +37,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
           script: |
-            cd ~/hillel_support_2024
+            cd ~/hillel_catering_api
             git pull
             docker compose build
             docker compose down

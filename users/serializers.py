@@ -27,7 +27,14 @@ class UserRegistratrionSerializer(serializers.ModelSerializer):
 class UserPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["email", "phone_number", "first_name", "last_name", "role"]
+        fields = [
+            "id",
+            "email",
+            "phone_number",
+            "first_name",
+            "last_name",
+            "role",
+        ]
 
 
 class UserActivationSerializer(serializers.Serializer):

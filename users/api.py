@@ -1,9 +1,9 @@
 import random
+
 from rest_framework import permissions, routers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
 from users.service import Activator
 
 from .serializers import (
@@ -11,7 +11,6 @@ from .serializers import (
     UserPublicSerializer,
     UserRegistratrionSerializer,
 )
-
 
 # PoC
 # @celery_app.task
@@ -56,12 +55,13 @@ class UserAPIViewSet(viewsets.GenericViewSet):
         service = Activator(email=getattr(serializer.instance, "email"))
         activation_key = service.create_activation_key()
         service.save_activation_information(
-            user_id=getattr(serializer.instance, "id"), activation_key=activation_key
+            user_id=getattr(serializer.instance, "id"),
+            activation_key=activation_key,
         )
         service.send_user_activation_email(activation_key=activation_key)
 
         return Response(
-            UserPublicSerializer(serializer.validated_data).data,
+            UserPublicSerializer(serializer.instance).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -77,7 +77,9 @@ class UserAPIViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
 
         service = Activator()
-        service.activate_user(activation_key=serializer.validated_data.get("key"))
+        service.activate_user(
+            activation_key=serializer.validated_data.get("key")
+        )
 
         # serializer.validated_data
         return Response(data=None, status=status.HTTP_204_NO_CONTENT)
