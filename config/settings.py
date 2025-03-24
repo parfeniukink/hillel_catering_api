@@ -109,6 +109,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -140,9 +141,9 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = "users.User"
 
 
-# MAILING SECTION
+# MAILING (SMTP) SECTION
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "mailing"
+EMAIL_HOST = getenv("SMTP_HOST", default="mailing")
 EMAIL_PORT = 1025
 EMAIL_HOST_USER = "mailpit"
 EMAIL_HOST_PASSWORD = "mailpit"

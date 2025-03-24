@@ -18,7 +18,7 @@ worker:
 
 .PHONY: infra
 infra:
-	docker compose up -d database cache broker
+	docker compose up -d database cache broker mailing
 
 .PHONY: prod
 prod:

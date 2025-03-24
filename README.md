@@ -184,9 +184,15 @@ cp .env.default .env
   - Rent instance (machine)
   - Clone Project
   - Infra:
-    - Machine with application
-    - Machine with worker (or same?)
-    - Database
-    - ...
-  - Docker Infra
-    - Machine with Docker
+    - Native (bare metal)
+      - Machine with application
+      - Machine with worker (or same?)
+      - Database
+      - ...
+    - Docker Infra
+      - Machine with Docker
+- Select HTTP-server
+  - security
+  - SSL Certificates
+  - Access to staticfiles
+  - Reverse Proxy
