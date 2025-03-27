@@ -5,6 +5,11 @@ from rest_framework import serializers
 User = get_user_model()
 
 
+class TokenObtainResponseSerializser(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
 class UserRegistratrionSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

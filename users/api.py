@@ -1,10 +1,8 @@
-import random
-
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, routers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
 from users.service import Activator
 
 from .serializers import (
@@ -12,12 +10,6 @@ from .serializers import (
     UserPublicSerializer,
     UserRegistratrionSerializer,
 )
-
-# PoC
-# @celery_app.task
-# def background_task(n: int):
-#     print(f"Running in the background, {n=}")
-#     return n
 
 
 class UserAPIViewSet(viewsets.GenericViewSet):
@@ -40,23 +32,19 @@ class UserAPIViewSet(viewsets.GenericViewSet):
         else:
             raise NotImplementedError(f"Action {self.action} is not ready yet")
 
+    @swagger_auto_schema(
+        responses={201: UserPublicSerializer},
+    )
     def create(self, request):
         serializer = UserRegistratrionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        # functional approach
-        # actional_key: uuid.UUID = service.create_activation_key(
-        #     email=serializer.validated_data["email"]
-        # )
-        # service.send_user_activation_email(
-        #     email=serializer.validated_data["email"], activation_key=activation_key
-        # )
-
         service = Activator(email=getattr(serializer.instance, "email"))
         activation_key = service.create_activation_key()
         service.save_activation_information(
-            user_id=getattr(serializer.instance, "id"), activation_key=activation_key
+            user_id=getattr(serializer.instance, "id"),
+            activation_key=activation_key,
         )
         service.send_user_activation_email(activation_key=activation_key)
 
@@ -71,13 +59,22 @@ class UserAPIViewSet(viewsets.GenericViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @swagger_auto_schema(
+        method="post",
+        request_body=UserActivationSerializer,
+        responses={
+            204: None,
+        },
+    )
     @action(methods=["POST"], detail=False)
     def activate(self, request):
         serializer = UserActivationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         service = Activator()
-        service.activate_user(activation_key=serializer.validated_data.get("key"))
+        service.activate_user(
+            activation_key=serializer.validated_data.get("key")
+        )
 
         # serializer.validated_data
         return Response(data=None, status=status.HTTP_204_NO_CONTENT)

@@ -11,6 +11,7 @@ psycopg2-binary = "~=2.9.10"
 redis = "~=5.2.1"
 celery = { version = "==5.4.0", extras = ["redis"]}
 httpx = "*"
+drf-yasg = "*"
 
 [dev-packages]
 django-types = "*"
@@ -28,4 +29,3 @@ pytest = "*"
 
 [requires]
 python_version = "3.12"
-

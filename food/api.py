@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import routers, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from shared.cache import CacheService
 
 from .enums import OrderStatus
@@ -34,6 +34,9 @@ def bueno_webhook(request):
 
 
 class FoodAPIViewSet(viewsets.GenericViewSet):
+    authentication_classes = [JWTAuthentication]
+    serializer_class = DishSerializer
+
     # HTTP GET /food/dishes
     @action(methods=["get"], detail=False)
     def dishes(self, request):
@@ -80,7 +83,9 @@ class FoodAPIViewSet(viewsets.GenericViewSet):
 
         for dish_order in dishes_order:
             instance = DishOrderItem.objects.create(
-                dish=dish_order["dish"], quantity=dish_order["quantity"], order=order
+                dish=dish_order["dish"],
+                quantity=dish_order["quantity"],
+                order=order,
             )
             print(f"New Dish Order Item is created: {instance.pk}")
 
