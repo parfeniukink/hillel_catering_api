@@ -49,3 +49,7 @@ check:
 quality:
 	black ./
 	isort ./
+
+.PHONY: test
+test:
+	python -m pytest tests/ 

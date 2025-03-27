@@ -1,3 +1,4 @@
+from os import wait
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, routers, status, viewsets
 from rest_framework.decorators import action
@@ -49,7 +50,7 @@ class UserAPIViewSet(viewsets.GenericViewSet):
         service.send_user_activation_email(activation_key=activation_key)
 
         return Response(
-            UserPublicSerializer(serializer.validated_data).data,
+            UserPublicSerializer(serializer.instance).data,
             status=status.HTTP_201_CREATED,
         )
 
