@@ -22,7 +22,7 @@ jobs:
         # run: make check
         run: echo "Linting passed"
       - name: Run tests
-        run: pytest tests/
+        run: ls -la && python -m pytest tests/
 
   deployment:
     runs-on: ubuntu-latest
