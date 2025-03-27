@@ -1,0 +1,85 @@
+[tool.flake8]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+select = ["E", "F"]
+ignore = []
+per-file-ignores = [
+    "**/*.py:TCH003,RET505",
+    "tests/**/*.py:S101,ARG,PLR2004,TCH002,SLF001,S105,S311,PT011,N806,PGH003,S106,PLR0915",
+    "src/**/__init__.py:F401,F403"
+]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "__pycache__",
+    "_build",
+    "venv",
+    "buck-out",
+    "build",
+    "dist",
+    "Makefile",
+    "migrations",
+    "docs",
+]
+
+
+# Same as Black.
+line-length = 79
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.black]
+target-version = ['py312']
+line-length = 79
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | migrations
+  )/
+                     # the root of the project
+)
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 79
+skip = ["migrations","venv"]
+src_paths = []
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "*_test.py"]
+python_functions = "test_* *_test"
+addopts = "-s -vvv --cache-clear --reuse-db"
+pythonpath = '..'
+cache_dir = '/tmp'

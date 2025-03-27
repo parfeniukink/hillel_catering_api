@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     # 3-rd party
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_yasg",
     # custom
     "food",
     "delivery",

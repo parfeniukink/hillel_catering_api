@@ -22,7 +22,7 @@ infra:
 
 .PHONY: prod
 prod:
-	docker compose up -d api
+	docker compose up -d nginx
 
 .PHONY: bueno
 bueno:
@@ -49,3 +49,7 @@ check:
 quality:
 	black ./
 	isort ./
+
+.PHONY: test
+test:
+	python -m pytest tests

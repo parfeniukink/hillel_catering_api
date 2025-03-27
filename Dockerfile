@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim as base
 
 # ENV PYTHONUNBUFFERED=1
 
@@ -18,6 +18,18 @@ RUN pipenv install --system --deploy
 WORKDIR /app/
 COPY ./ ./
 
+
+# DEV IMAGE
+from base as dev
 EXPOSE 8000
 ENTRYPOINT ["python"]
 CMD ["manage.py", "runserver", "0.0.0.0:8000"]
+
+# PRODUCTION IMAGE
+from base as prod
+
+ENV GUNICORN_CMD_ARGS="--bind 0.0.0.0:8000"
+
+EXPOSE 8000
+ENTRYPOINT ["python"]
+CMD ["-m", "gunicorn", "config.wsgi"]
