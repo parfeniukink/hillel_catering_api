@@ -12,6 +12,7 @@ redis = "~=5.2.1"
 celery = { version = "==5.4.0", extras = ["redis"]}
 httpx = "*"
 drf-yasg = "*"
+gunicorn = "*"
 
 [dev-packages]
 django-types = "*"
@@ -26,6 +27,7 @@ black = "*"
 isort = "*"
 mypy = "*"
 pytest = "*"
+pytest-django = "*"
 
 [requires]
 python_version = "3.12"

@@ -1,11 +1,11 @@
 import pytest
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
 
 
 @pytest.fixture
 def john():
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
     return User.objects.create_user(
         **dict(
             email="john@email.com",

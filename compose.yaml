@@ -1,13 +1,24 @@
 services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: catering-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./staticfiles:/usr/share/nginx/html/staticfiles:ro
+    depends_on:
+      - api
+
   api: &api
-    build: .
+    build:
+      context: .
+      target: prod
     # for dubugging in Docker Container
     # stdin_open: true
     # tty: true
     container_name: catering_api
     env_file: ".env"
-    ports:
-      - "8000:8000"
     volumes:
       - .:/app/
     depends_on:
@@ -34,29 +45,27 @@ services:
     image: "postgres:17"
     container_name: catering_database
     env_file: ".env"
-    ports:
-      - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
 
   cache:
     image: "redis:latest"
     container_name: catering_cache
-    ports:
-      - "6379:6379"
+    # ports:
+    #   - "6379:6379"
 
   broker:
     image: "redis:latest"
     container_name: catering_broker
-    ports:
-      - "6380:6379"
+    # ports:
+    #   - "6380:6379"
 
   mailing:
     image: axllent/mailpit
     container_name: catering_mailing
-    ports:
-      - "8025:8025" # HTTP
-      - "1025:1025" # SMTP
+    # ports:
+    #   - "8025:8025" # HTTP
+    #   - "1025:1025" # SMTP
     environment:
       MP_MAX_MESSAGES: 100
       MP_SMTP_AUTH_ACCEPT_ANY: 1
